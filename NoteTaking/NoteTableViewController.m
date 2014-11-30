@@ -17,9 +17,10 @@
 
 @implementation NoteTableViewController
 
+
 // p46 (2/2)
 int rowSelected = -1;
-bool firstRunFlag = true;
+bool firstRunFlag = true;   // Define is the app run at the first time
 
 
 - (id)initWithStyle:(UITableViewStyle)style
@@ -37,9 +38,10 @@ bool firstRunFlag = true;
     
     // p47 (1/2)
     self.items      = [[NSMutableArray alloc] init];
+    self.my_group    = [[NSMutableArray alloc] init];
     self.content    = [[NSMutableArray alloc] init];
     self.timeStamp  = [[NSMutableArray alloc] init];
-    self.my_flag    =  [[NSMutableArray alloc] init];
+    self.my_flag    = [[NSMutableArray alloc] init];
     
     self.savePath = [self pathByCopyingFile:@"note.plist"];
     
@@ -53,6 +55,7 @@ bool firstRunFlag = true;
     if(!firstRunFlag){
         NSMutableDictionary *data   = [[NSMutableDictionary alloc] initWithContentsOfFile:self.savePath];
         self.items                  = [data objectForKey:@"items"];
+        self.my_group                = [data objectForKey:@"my_group"];
         self.content                = [data objectForKey:@"content"];
         self.timeStamp              = [data objectForKey:@"timeStamp"];
         self.my_flag                = [data objectForKey:@"my_flag"];
@@ -80,7 +83,7 @@ bool firstRunFlag = true;
 #warning Incomplete method implementation.
     // Return the number of rows in the section.
     // p48 (2/2)
-    return self.items.count;
+    return self.items.count;  // Return array length
 }
 
 /*
@@ -93,7 +96,9 @@ bool firstRunFlag = true;
     return cell;
 }
 */
-// p49
+
+
+// p49 -  Create cell
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *CellIdentifier = @"noteCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: CellIdentifier];
@@ -110,27 +115,30 @@ bool firstRunFlag = true;
             cell.textLabel.text = [self.items objectAtIndex:indexPath.row];
         }
     
-    
     cell.detailTextLabel.text = [self.timeStamp objectAtIndex:indexPath.row];
     
     return cell;
 }
 
-// p50 (1/2)
+// p50 (1/2)  - Add note
 - (IBAction)addNote:(UIBarButtonItem *)sender {
     NSString *newNote = @"New Note";
+    NSString *newMy_group = @"No group";
     NSDate *currentTime = [NSDate date];
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"YYYY.MM.dd hh:mm:ss"];
     NSString *newTime = [dateFormatter stringFromDate: currentTime];
     NSString *newContent = @"";
+    
     [self.items addObject:newNote];
+    [self.items addObject:newMy_group];
     [self.timeStamp addObject:newTime];
     [self.content addObject:newContent];
+    
     [self.tableView reloadData];
 }
 
-// p50 (2/2)
+// p50 (2/2) - Edit note
 - (IBAction)editTable:(UIBarButtonItem*)sender{
     if( self.editing == NO ){
         sender.title = @"Done";
@@ -139,7 +147,7 @@ bool firstRunFlag = true;
         sender.title = @"Edit";
         self.editing = NO;
     }
-    [self saveNote];
+    [self saveNote];     // Put into upper's if{}, is other flow of [save] action
 }
 
 // p51 (1/2)
@@ -159,6 +167,7 @@ bool firstRunFlag = true;
         // Delete the row from the data source
         [self.tableView beginUpdates];
         [self.items removeObjectAtIndex:indexPath.row];
+        [self.my_group removeObjectAtIndex:indexPath.row];
         [self.content removeObjectAtIndex:indexPath.row];
         [self.timeStamp removeObjectAtIndex:indexPath.row];
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
@@ -176,10 +185,16 @@ bool firstRunFlag = true;
     NSString *tempItem      = self.items[fromIndexPath.row];
     NSString *tempContent   = self.content[fromIndexPath.row];
     NSString *tempTimeStamp = self.timeStamp[fromIndexPath.row];
+    
     [self.items removeObjectAtIndex:fromIndexPath.row];
     [self.items insertObject:tempItem atIndex:toIndexPath.row];
+    
+    [self.my_group removeObjectAtIndex:fromIndexPath.row];
+    [self.my_group insertObject:tempItem atIndex:toIndexPath.row];
+    
     [self.content removeObjectAtIndex:fromIndexPath.row];
     [self.content insertObject:tempContent atIndex:toIndexPath.row];
+    
     [self.timeStamp removeObjectAtIndex:fromIndexPath.row];
     [self.timeStamp insertObject:tempTimeStamp atIndex:toIndexPath.row];
     NSLog(@"%@", self.items);
@@ -202,10 +217,11 @@ bool firstRunFlag = true;
 {
     // Get the new view controller using [segue destinationViewController].
     // Pass the selected object to the new view controller.
-    NSIndexPath *indexPath  = [self.tableView indexPathForSelectedRow];
+    NSIndexPath *indexPath  = [self.tableView indexPathForSelectedRow]; // Detech which btn user pressed
     rowSelected             = indexPath.row;
     EditViewController *evc = segue.destinationViewController;
     evc.titleText           = [self.items objectAtIndex:indexPath.row];
+    evc.my_groupText        = [self.my_group objectAtIndex:indexPath.row];         // ***
     evc.contentText         = [self.content objectAtIndex:indexPath.row];
     evc.noteIndex           = [NSString stringWithFormat:@"%d", rowSelected];
 }
@@ -216,13 +232,17 @@ bool firstRunFlag = true;
     EditViewController *evc         = unwindSegue.sourceViewController;
     NSString *title                 = evc.titleText;
     NSString *content               = evc.contentText;
+    NSString *my_group               = evc.my_groupText;         // ***
     NSString *noteIndex             = evc.noteIndex;
     NSDate *currentTime             = [NSDate date];
     NSDateFormatter *dateFormatter  = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"YYYY.MM.dd hh:mm:ss"];
     NSString *newTime               = [dateFormatter stringFromDate: currentTime];
+    
+    // Check pressed's index
     NSLog(@"title: %@", title);
           [self.items replaceObjectAtIndex:[noteIndex intValue] withObject:title];
+          [self.my_group replaceObjectAtIndex:[noteIndex intValue] withObject:my_group];
           [self.content replaceObjectAtIndex:[noteIndex intValue] withObject:content];
           [self.timeStamp replaceObjectAtIndex:[noteIndex intValue] withObject:newTime];
           [self.tableView reloadData];
@@ -230,7 +250,7 @@ bool firstRunFlag = true;
 }
 
 
-// p55
+// p55 - Save data
 - (NSString *)pathByCopyingFile:(NSString *)fileName {
     NSArray *comp               = [fileName componentsSeparatedByString: @"."];
     NSBundle *bundle            = [NSBundle mainBundle];
@@ -255,6 +275,7 @@ bool firstRunFlag = true;
 - (void) saveNote{
     NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
     [data setValue:self.items forKey:@"items"];
+    [data setValue:self.items forKey:@"my_group"];
     [data setValue:self.content forKey:@"content"];
     [data setValue:self.timeStamp forKey:@"timeStamp"];
     [data writeToFile:self.savePath atomically:YES];

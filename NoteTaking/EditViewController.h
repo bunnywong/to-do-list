@@ -12,9 +12,13 @@
 
 // p44
 @property (weak, nonatomic) IBOutlet UITextField *titleField;
+@property (weak, nonatomic) IBOutlet UITextField *my_groupField;
 @property (weak, nonatomic) IBOutlet UITextView *contentField;
+
 @property (nonatomic, retain) NSString *noteIndex;
-@property (nonatomic, retain) NSString *titleText;
-@property (nonatomic, retain) NSString *contentText;
+    @property (nonatomic, retain) NSString *titleText;
+    @property (nonatomic, retain) NSString *my_groupText;
+    @property (nonatomic, retain) NSString *contentText;
+
 
 @end

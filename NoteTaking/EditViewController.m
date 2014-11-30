@@ -37,6 +37,9 @@
          self.titleField.text   = self.titleText;
     }
     
+    // Group
+    self.my_groupField.text      = self.my_groupText;
+    
     // Content
     self.contentField.text      = self.contentText;
 }
@@ -47,10 +50,11 @@
     // Dispose of any resources that can be recreated.
 }
 
-// p45
+// p45 - Put UI data to string , fwd it to next view
 - (void) viewWillDisappear:(BOOL)animated{
     self.titleText      = self.titleField.text;
     self.contentText    = self.contentField.text;
+    self.my_groupText    = self.my_groupField.text;
     [self performSegueWithIdentifier:@"saveSegue" sender:self];
 }
 
